@@ -4,15 +4,26 @@ from PyQt5 import QtWidgets
 import pyqtgraph as pg
 import sys
 import time
-import math
 
+'''
+Splitting the input into even and odd parts simplifies the FFT algorithm because it reduces the number of required calculations. 
+After the split, each of the even and odd parts can be processed recursively using the same FFT algorithm. This reduces the 
+problem size by a factor of 2 at each recursion level, which leads to a significant reduction in the number of calculations required to compute the FFT.
+'''
 def fft(data):
     n = len(data)
+    # If the length n is less than or equal to 1, the function returns the input data as is, as there is nothing to transform.
     if n <= 1:
         return data
+    # Otherwise, the input data is divided into two lists: even and odd, containing the even and odd-indexed elements of data respectively.
     even = fft(data[0::2])
     odd = fft(data[1::2])
+    '''
+    The fft function then calculates the "twiddle factors" using the formula np.exp(-2j * np.pi * k / n), where k is the index of the sample 
+    and n is the total length of the input array. It multiplies each odd-indexed sample by the corresponding twiddle factor and stores the results in a temporary array t.
+    '''
     t = [np.exp(-2j * np.pi * k / n) * odd[k] for k in range(n // 2)]
+    # Combine the even and odd parts of the array
     return [even[k] + t[k] for k in range(n // 2)] + [even[k] - t[k] for k in range(n // 2)]
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -37,7 +48,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Set up the FFT
         self.fft_x = np.linspace(0, RATE/2, int(CHUNK / 2))
-        self.bar_x = np.arange(32)  # x-values for bar graph
+
+        #Bar graph setup in PyQt5 that will eventually be replaced by drawing in the LED matrix
+        self.bar_x = np.arange(32)  # x-values for bar graph 
         self.bar_y = np.zeros(32)  # y-values for bar graph
         self.bar_item = pg.BarGraphItem(x=self.bar_x, height=self.bar_y, width=0.8, brush='y')
         self.graphWidget.addItem(self.bar_item)
@@ -49,7 +62,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Start the update timer
         self.timer = pg.QtCore.QTimer()
         self.timer.timeout.connect(self.update)
-        self.timer.start(1)  # Reduce interval to increase update rate
+        self.timer.start(10)  # Reduce interval to increase update rate
 
         # Initialize the framerate counter
         self.frame_count = 0
@@ -73,12 +86,27 @@ class MainWindow(QtWidgets.QMainWindow):
         fft_data = np.abs(fft_data[:int(len(fft_data) / 2)]) * 2
 
         # Calculate the amplitude for each frequency range
+        '''
+        The variable bar_freqs is an array of 33 evenly spaced frequencies between 0 Hz and 10,000 Hz.
+        For each of the 32 ranges defined by bar_freqs, the function calculates the corresponding FFT indices by scaling the frequency range 
+        with respect to the sample rate of 44,100 Hz and multiplying by the length of the chunk size.
+        '''
         bar_data = np.zeros(32)
         bar_freqs = np.linspace(0, 10000, 33)
+        '''
+        If we only had an array of size 32, we would not be able to include the highest frequency value in the range because it would not have a corresponding array index. 
+        Therefore, we use an array of size 33 to include all 32 frequency values and an extra value to represent the upper bound of the frequency range. This way, each bar has a 
+        corresponding frequency value and we can display all 32 bars with their respective heights.
+        '''
         for i in range(32):
             # Find the FFT indices for the current frequency range
             start_index = int(bar_freqs[i] / 44100 * 1024)
             end_index = int(bar_freqs[i + 1] / 44100 * 1024)
+            '''
+            if you input a 5,000 Hz tone, the code would calculate the amplitude of the frequency range from 4,878 Hz to 5,303 Hz, which is the range that includes the 5,000 Hz tone. 
+            The start index for this range would be int(4878/44100*1024) = 113 and the end index would be int(5303/44100*1024) = 123. The code would then find the FFT index with the 
+            highest amplitude in this range and multiply it by a constant factor to get the amplitude for this frequency range.
+            '''
 
             # Find the FFT index with the highest amplitude in the current range
             max_index = np.argmax(fft_data[start_index:end_index]) + start_index
