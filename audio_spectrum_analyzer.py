@@ -11,7 +11,7 @@ Computes the DFT (discrete Fourier transform) of the input data. The DFT is a tr
 def fft(data):
     n = len(data)
     # If the length n is less than or equal to 1, the function returns the input data as is, as there is nothing to transform.
-    if n <= 1:
+    if n == 1:
         return data
     # Otherwise, the input data is divided into two lists: even and odd, containing the even and odd-indexed elements of data respectively.
     '''
@@ -27,9 +27,13 @@ def fft(data):
     Odd-indexed samples are multiplied by the twiddle factors because they represent the imaginary part of the frequency components. The even-indexed samples represent the 
     real part of the frequency components and do not require a phase shift.
     '''
-    t = [np.exp(-2j * np.pi * k / n) * odd[k] for k in range(n // 2)]
     # Combine the even and odd parts of the array
-    return [even[k] + t[k] for k in range(n // 2)] + [even[k] - t[k] for k in range(n // 2)]
+    for k in range(n // 2):
+        t = np.exp(-2j * np.pi * k / n) * odd[k]
+        data[k] = even[k] + t
+        data[k + n // 2] = even[k] - t
+    return data
+
 
 # Set up PyAudio
 CHUNK = 1024 
