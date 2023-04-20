@@ -1,0 +1,8 @@
+File "/home/jem/rpi-rgb-led-matrix/bindings/python/samples/audio-visualizer-led.py", line 123, in <module>
+    max_index = np.argmax(fft_data[start_index:end_index]) + start_index
+  File "<__array_function__ internals>", line 200, in argmax
+  File "/usr/local/lib/python3.9/dist-packages/numpy/core/fromnumeric.py", line 1242, in argmax
+    return _wrapfunc(a, 'argmax', axis=axis, out=out, **kwds)
+  File "/usr/local/lib/python3.9/dist-packages/numpy/core/fromnumeric.py", line 57, in _wrapfunc
+    return bound(*args, **kwds)
+ValueError: attempt to get argmax of an empty sequence
