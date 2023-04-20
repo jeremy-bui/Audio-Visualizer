@@ -57,22 +57,12 @@ image = Image.new("RGB", (32, 32), color='black')
 
 draw = ImageDraw.Draw(image)
 
+VOL_SCALE = 1000
+prev_volume = [0] * 32
+
+
 while True:
     
-
-    
-    '''
-    draw.rectangle((31, 31, 31, 31), fill='white')
-    matrix.SetImage(image, 0, 0)
-    
-    time.sleep(0.5)
-    draw.rectangle((31, 31, 31, 31), fill='black')
-    matrix.SetImage(image, 0, 0)
-    
-    time.sleep(0.5)
-    matrix.Clear()
-    matrix.SetImage(image, 0, 0)
-    '''
     
     # Set up the FFT
     fft_x = np.linspace(0, RATE/2, int(CHUNK / 2))
@@ -101,7 +91,7 @@ while True:
     with respect to the sample rate of 44,100 Hz and multiplying by the length of the chunk size.
     '''
     bar_data = np.zeros(32)
-    bar_freqs = np.linspace(0, 1100, 33)
+    bar_freqs = np.linspace(0, 1400, 33)
     '''
     If we only had an array of size 32, we would not be able to include the highest frequency value in the range because it would not have a corresponding array index. 
     Therefore, we use an array of size 33 to include all 32 frequency values and an extra value to represent the upper bound of the frequency range. This way, each bar has a 
@@ -126,7 +116,21 @@ while True:
         amplitude_factor = 10 # Experiment with different factors to see what works best
         bar_data[i] = fft_data[max_index] * amplitude_factor
     
-        y_value = int(bar_data[i] * 32)
+        #y_value= int(bar_data[i] * 32)
+        amplitude = int(bar_data[i] * 32)
+        
+        if amplitude > 32:
+            amplitude = 32
+        if amplitude < prev_volume[i]:
+            amplitude = int(prev_volume[i]*0.99999)
+        xpos = 31-i
+        draw.line(((31 - i), 0, 31 - i, amplitude), fill='white')
+        prev_volume[i] = amplitude
+        
+        #print(prev_volume)
+        
+        
+        '''
         if y_value > 5:
             #matrix.brightness = 128
             #print('got brighter')
@@ -137,7 +141,7 @@ while True:
             draw.line(((31 - i), 0, 31 - i, y_value), fill='white')
         
         #draw.line(((31 - i), 0, 31 - i, y_value), fill='white')
-        
+        '''
     matrix.Clear()
     matrix.SetImage(image, 0, 0)
     
