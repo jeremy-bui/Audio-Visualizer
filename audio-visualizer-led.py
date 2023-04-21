@@ -57,8 +57,14 @@ image = Image.new("RGB", (32, 32), color='black')
 
 draw = ImageDraw.Draw(image)
 
-VOL_SCALE = 1000
 prev_volume = [0] * 32
+
+color_range = [(0, 0, 255), (0, 26, 255), (0, 51, 255), (0, 77, 255), 
+(0, 102, 255), (0, 128, 255), (0, 153, 255), (0, 179, 255), (0, 204, 255), 
+(0, 230, 255), (0, 255, 255), (26, 255, 230), (51, 255, 204), (77, 255, 179), 
+(102, 255, 153), (128, 255, 128), (153, 255, 102), (179, 255, 77), (204, 255, 51), 
+(230, 255, 26), (255, 255, 0), (255, 230, 0), (255, 204, 0), (255, 179, 0), (255, 153, 0), 
+(255, 128, 0), (255, 102, 0), (255, 77, 0), (255, 51, 0), (255, 26, 0), (255, 0, 0), (230, 0, 0), (204, 0, 0)]
 
 
 while True:
@@ -116,7 +122,7 @@ while True:
         amplitude_factor = 10 # Experiment with different factors to see what works best
         bar_data[i] = fft_data[max_index] * amplitude_factor
     
-        #y_value= int(bar_data[i] * 32)
+        
         amplitude = int(bar_data[i] * 32)
         
         if amplitude > 32:
@@ -124,28 +130,22 @@ while True:
         if amplitude < prev_volume[i]:
             amplitude = int(prev_volume[i]*0.99999)
         xpos = 31-i
-        draw.line(((31 - i), 0, 31 - i, amplitude), fill='white')
+        
+        #how loud the sound is
+        if amplitude >= 22:
+            draw.line(((31 - i), 0, 31 - i, 10), fill=color_range[i])
+            draw.line(((31 - i), 11, 31 - i, 21), fill='yellow')
+            draw.line(((31 - i), 22, 31 - i, amplitude), fill='purple')
+            
+        elif amplitude >= 11:
+            draw.line(((31 - i), 0, 31 - i, 10), fill=color_range[i])
+            draw.line(((31 - i), 11, 31 - i, amplitude), fill='yellow')
+            
+        else:
+            draw.line(((31 - i), 0, 31 - i, amplitude), fill=color_range[i])
+            
         prev_volume[i] = amplitude
         
-        #print(prev_volume)
-        
-        
-        '''
-        if y_value > 5:
-            #matrix.brightness = 128
-            #print('got brighter')
-            draw.line(((31 - i), 0, 31 - i, y_value), fill='red')
-        else:
-            #matrix.brightness = 10
-            #print('got dimmer')
-            draw.line(((31 - i), 0, 31 - i, y_value), fill='white')
-        
-        #draw.line(((31 - i), 0, 31 - i, y_value), fill='white')
-        '''
     matrix.Clear()
     matrix.SetImage(image, 0, 0)
-    
-    
-            
-    #print(bar_data)
 
